@@ -5,7 +5,7 @@ var assert = require('assert');
 var webdriver = require('selenium-webdriver');
 var chrome = require('selenium-webdriver/chrome');
 var chromeDriver = require('selenium-chromedriver');
-
+var makeSelector = webdriver.By.css;
 var port = process.env.NODE_TEST_PORT || 8002;
 
 before(function(done) {
@@ -56,7 +56,7 @@ it('contains the application name in the page title', function(){
 //assert what happens when we type enter
 it('add new item to the list', function(){
 	var driver = this.driver;
-	return this.driver.findElement(webdriver.By.css('#new-todo'))
+	return this.driver.findElement(makeSelector('#new-todo'))
 		.then(function(textInput) {
 			//in order for the promise library to know what to do here, it needs to know- so "return"
 			return textInput.sendKeys('clean Batmobile', webdriver.Key.ENTER); //same as ('clean', 'Batmoible');
@@ -64,7 +64,7 @@ it('add new item to the list', function(){
 		}).then(function(){  //this is a global object
 			//Make sure that we are looking for the "only" one in the list and not the last one -- 
 			//array should be only one and not adding more than one item
-			return driver.findElements(webdriver.By.css('#todo-list li'));  
+			return driver.findElements(makeSelector('#todo-list li'));  //webdriver.By.css can be alias on the top
 			//this.driver has issue... because it's out of scope
 		}).then (function(items){
 			assert.equal(items.length, 1);
@@ -72,14 +72,26 @@ it('add new item to the list', function(){
 			//since this is "promise", so we CAN'T do 
 			//var text = items[0].getText()
 			//If nothing "bubble up", then moca will think test complete!!!
-
 			return items[0].getText();
 		}).then (function (thistext) {
 			assert.equal(thistext, "clean Batmobile");
 		});
-	
 });
 
+it('updates "items left" count when new item is added', function(){
+	var driver = this.driver;
+	return this.driver.findElement(makeSelector('#new-todo'))
+		.then(function(textInput) {
+			return textInput.sendKeys('clean Batmobile', webdriver.Key.ENTER); 
+		}).then(function(){  
+			return driver.findElement(makeSelector('#todo-count strong'));  
+		}).then (function(item){
+			return item.getText();
+		}).then (function(countText){
+			assert.equal(countText, "1");
+		});
+
+});
 
 
 
